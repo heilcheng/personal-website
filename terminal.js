@@ -5,7 +5,7 @@
   var term = document.getElementById("term");
   if (!screenEl || !input || !docs) return;
 
-  var PROMPT = '[<span class="uh">hailey<span class="at">@</span>haileycheng.com</span> ~]$';
+  var PROMPT = "[hailey@haileycheng.com ~]$";
   var history = [];
   var histIndex = 0;
   var booted = Date.now();
@@ -43,7 +43,7 @@
   }
 
   function scrollDown() {
-    window.scrollTo(0, document.body.scrollHeight);
+    term.scrollTop = term.scrollHeight;
   }
 
   var COMMANDS = {
@@ -126,9 +126,7 @@
     },
 
     theme: function () {
-      var btn = document.getElementById("theme-toggle");
-      if (btn) btn.click();
-      var now = document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark";
+      var now = window.toggleTheme ? window.toggleTheme() : "dark";
       return '<div class="row">theme: ' + now + "</div>";
     },
 
@@ -282,6 +280,63 @@
     }
   }
 
+  var typed = document.getElementById("typed");
+  var typedAfter = document.getElementById("typed-after");
+  var cursor = document.getElementById("cursor");
+  var inputLine = document.getElementById("input-line");
+
+  function renderInput() {
+    var v = input.value;
+    var pos = input.selectionStart == null ? v.length : input.selectionStart;
+    typed.textContent = v.slice(0, pos);
+    var under = v.charAt(pos);
+    cursor.textContent = under || "\u00a0";
+    typedAfter.textContent = v.slice(pos + 1);
+  }
+
+  ["input", "keyup", "click", "select"].forEach(function (ev) {
+    input.addEventListener(ev, renderInput);
+  });
+  input.addEventListener("focus", function () {
+    inputLine.classList.add("focused");
+    renderInput();
+  });
+  input.addEventListener("blur", function () {
+    inputLine.classList.remove("focused");
+  });
+
+  // Header-bar menu (GNOME-style popover).
+  var menuBtn = document.getElementById("menu-btn");
+  var menu = document.getElementById("menu");
+  function closeMenu() {
+    if (!menu || menu.hidden) return;
+    menu.hidden = true;
+    menuBtn.setAttribute("aria-expanded", "false");
+  }
+  if (menuBtn && menu) {
+    menuBtn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      var open = menu.hidden;
+      menu.hidden = !open;
+      menuBtn.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+    menu.addEventListener("click", function (e) {
+      var btn = e.target.closest("button[data-action]");
+      if (!btn) return;
+      e.stopPropagation();
+      closeMenu();
+      var action = btn.getAttribute("data-action");
+      if (action === "theme") run("theme");
+      else if (action === "clear") run("clear");
+      else if (action === "help") run("help");
+      scrollDown();
+      input.focus();
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") closeMenu();
+    });
+  }
+
   input.addEventListener("keydown", function (e) {
     if (e.key === "Enter") {
       var value = input.value;
@@ -310,12 +365,16 @@
       e.preventDefault();
       screenEl.innerHTML = "";
     }
+    // Keys that change the value synchronously (history, tab) need a repaint;
+    // ordinary typing repaints via the input event.
+    setTimeout(renderInput, 0);
   });
 
   // Clicking anywhere in the terminal focuses the prompt, unless the user is
   // selecting text or following a link.
   document.addEventListener("click", function (e) {
-    if (e.target && e.target.closest && e.target.closest("a, button")) return;
+    closeMenu();
+    if (e.target && e.target.closest && e.target.closest("a, button, #headerbar")) return;
     if (String(window.getSelection())) return;
     input.focus();
   });
@@ -368,6 +427,7 @@
   );
 
   refreshStars();
+  renderInput();
 
   // Autofocus only where a keyboard is already present -- on touch devices this
   // would throw up the on-screen keyboard before the visitor has read anything.

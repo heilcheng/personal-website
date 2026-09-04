@@ -1,58 +1,213 @@
-/* Arch terminal. Dark by default. */
+/* A GNOME Terminal window (Adwaita dark) sitting on the purple wallpaper. */
 :root {
-  --bg: #1c1c1c;
-  --fg: #d6d6d6;
-  --accent: #56c5f5;
-  --accent-dim: #2f93c4;
-  --dim: #7d7d7d;
-  --err: #e06c6c;
-  --rule: #2e2e2e;
-  --sel: #56c5f544;
+  --wall: #2a1450;
+  --hb-bg: #303030;
+  --hb-fg: #f0f0f0;
+  --hb-btn: #b8b8b8;
+  --hb-close: rgba(255, 255, 255, 0.16);
+  --term-bg: #1e1e1e;
+  --fg: #f2f2f2;
+  --accent: #23b7da;
+  --accent-dim: #1793ad;
+  --dim: #9a9a9a;
+  --err: #f28b82;
+  --rule: #3a3a3a;
+  --sel: rgba(35, 183, 218, 0.28);
+  --pop-bg: #2b2b2b;
+  --pop-hover: #3a3a3a;
 }
 
 :root[data-theme="light"] {
-  --bg: #fbfbf9;
-  --fg: #22262a;
-  --accent: #0f74a8;
-  --accent-dim: #0f74a8;
-  --dim: #6d7378;
-  --err: #b83c3c;
-  --rule: #e3e4e2;
-  --sel: #0f74a822;
+  --hb-bg: #ebebeb;
+  --hb-fg: #2e2e2e;
+  --hb-btn: #5a5a5a;
+  --hb-close: rgba(0, 0, 0, 0.1);
+  --term-bg: #ffffff;
+  --fg: #1e1e1e;
+  --accent: #0b7f9a;
+  --accent-dim: #0b7f9a;
+  --dim: #6f6f6f;
+  --err: #c0392b;
+  --rule: #d8d8d8;
+  --sel: rgba(11, 127, 154, 0.18);
+  --pop-bg: #ffffff;
+  --pop-hover: #f0f0f0;
 }
 
 * { box-sizing: border-box; }
 
 html {
-  background: var(--bg);
+  background: var(--wall);
   -webkit-text-size-adjust: 100%;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
-  background: var(--bg);
+  min-height: 100dvh;
+  padding: 2.5rem 2.75rem;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  background: var(--wall) url("wallpaper.svg") center / cover no-repeat fixed;
   color: var(--fg);
-  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
-    "DejaVu Sans Mono", "Liberation Mono", monospace;
-  font-size: 14.5px;
-  line-height: 1.62;
+  font-family: "Source Code Pro", ui-monospace, SFMono-Regular, "SF Mono", Menlo,
+    Consolas, "DejaVu Sans Mono", monospace;
+  font-size: 15px;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   font-variant-ligatures: none;
 }
 
 ::selection { background: var(--sel); }
 
-#term {
-  min-height: 100vh;
-  padding: 1.4rem 1.25rem 5rem;
-  cursor: text;
+/* ---- Window ------------------------------------------------------------ */
+
+#window {
+  width: min(1240px, 100%);
+  height: calc(100vh - 5rem);
+  height: calc(100dvh - 5rem);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--term-bg);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.55),
+    0 24px 60px rgba(0, 0, 0, 0.55),
+    0 4px 14px rgba(0, 0, 0, 0.35);
 }
 
-/* Prompt + typed command lines */
-.cmd {
-  margin: 1.5rem 0 0.35rem;
+/* ---- Header bar -------------------------------------------------------- */
+
+#headerbar {
+  position: relative;
+  flex: none;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  padding: 0 0.6rem;
+  background: var(--hb-bg);
+  color: var(--hb-fg);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.35);
+  font-family: -apple-system, BlinkMacSystemFont, "Cantarell", "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  user-select: none;
 }
+
+#title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  max-width: calc(100% - 12rem);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hb-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.hb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--hb-btn);
+  cursor: default;
+}
+
+.hb-btn:not(:disabled) { cursor: pointer; }
+
+.hb-btn:not(:disabled):hover,
+.hb-btn[aria-expanded="true"] {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--hb-fg);
+}
+
+:root[data-theme="light"] .hb-btn:not(:disabled):hover,
+:root[data-theme="light"] .hb-btn[aria-expanded="true"] {
+  background: rgba(0, 0, 0, 0.07);
+}
+
+.hb-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.hb-close {
+  width: 26px;
+  height: 26px;
+  margin-left: 0.4rem;
+  border-radius: 50%;
+  background: var(--hb-close);
+  color: var(--hb-fg);
+}
+
+/* GNOME-style popover under the menu button */
+.popover[hidden] { display: none; }
+
+.popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0.6rem;
+  z-index: 20;
+  min-width: 200px;
+  padding: 0.35rem;
+  background: var(--pop-bg);
+  border: 1px solid rgba(0, 0, 0, 0.45);
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.popover button {
+  text-align: left;
+  padding: 0.45rem 0.7rem;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--hb-fg);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.popover button:hover,
+.popover button:focus-visible {
+  background: var(--pop-hover);
+  outline: 0;
+}
+
+/* ---- Terminal body ----------------------------------------------------- */
+
+#term {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0.55rem 0.8rem 1.4rem;
+  cursor: text;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+
+.cmd { margin: 1.25rem 0 0.15rem; }
 
 #screen > .cmd:first-child { margin-top: 0; }
 
@@ -66,51 +221,70 @@ body {
   font-weight: 700;
 }
 
-.at { color: var(--accent-dim); }
+.at { color: var(--accent); }
 
-/* Live input line */
+/* Live input line with a block cursor */
 #input-line {
-  display: flex;
-  align-items: baseline;
-  gap: 0.55ch;
-  margin-top: 1.5rem;
+  position: relative;
+  margin-top: 1.25rem;
+  word-break: break-all;
+}
+
+#typed, #typed-after, #cursor { white-space: pre-wrap; }
+
+#input-line .prompt::after { content: " "; }
+
+#cursor {
+  display: inline-block;
+  min-width: 0.62em;
+  outline: 1px solid var(--fg);
+  outline-offset: -1px;
+  color: var(--fg);
+}
+
+#input-line.focused #cursor {
+  background: var(--fg);
+  color: var(--term-bg);
+  outline: 0;
+  animation: blink 1.2s steps(1) infinite;
+}
+
+@keyframes blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #input-line.focused #cursor { animation: none; }
 }
 
 #cmdline {
-  flex: 1 1 auto;
-  min-width: 0;
-  background: transparent;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
   border: 0;
-  outline: 0;
   padding: 0;
   margin: 0;
-  color: var(--fg);
-  caret-color: var(--accent);
   font: inherit;
-  line-height: inherit;
+  color: transparent;
+  background: transparent;
+  caret-color: transparent;
 }
 
-/* Command output */
-.out { margin: 0 0 0.2rem; }
+/* ---- Output ------------------------------------------------------------ */
+
+.out { margin: 0 0 0.1rem; }
 
 .row { margin: 0; }
 
-.k {
+.k, .b, .dir, .heading, .star {
   color: var(--accent);
   font-weight: 700;
 }
 
 .org { color: var(--fg); }
-
-.b {
-  color: var(--accent);
-  font-weight: 700;
-}
-
-.dir {
-  color: var(--accent);
-  font-weight: 700;
-}
 
 .dim { color: var(--dim); }
 
@@ -118,16 +292,20 @@ body {
 
 .hint { color: var(--fg); }
 
+.star { white-space: nowrap; }
+
 .sub {
   color: var(--dim);
   padding-left: 1.5rem;
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.25rem;
 }
+
+.spacer { height: 0.5rem; }
 
 .cols {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem 2.2rem;
+  gap: 0.3rem 2.2rem;
 }
 
 .art {
@@ -160,8 +338,8 @@ a:focus-visible {
 .fetch {
   display: flex;
   align-items: flex-start;
-  gap: 2.5rem;
-  margin: 0.5rem 0 0.3rem;
+  gap: 2.2rem;
+  margin: 0.3rem 0 0.2rem;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -172,28 +350,15 @@ a:focus-visible {
   margin: 0;
   flex: none;
   color: var(--accent);
-  font-size: 11.5px;
+  font-size: 13.5px;
   line-height: 1.18;
   white-space: pre;
   font-family: inherit;
 }
 
-.heading {
-  color: var(--accent);
-  font-weight: 700;
-}
-
-.star {
-  color: var(--accent);
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.spacer { height: 0.5rem; }
-
 .info {
   margin: 0;
-  padding-top: 0.8rem;
+  padding-top: 0.85rem;
   min-width: 0;
 }
 
@@ -215,62 +380,41 @@ a:focus-visible {
   color: var(--accent);
   font-weight: 700;
   flex: none;
-  min-width: 5.5rem;
+  min-width: 6rem;
 }
 
 .info dt::after { content: ":"; }
 
 .info dd { margin: 0; }
 
-/* Theme toggle */
-#theme-toggle {
-  position: fixed;
-  top: 0.85rem;
-  right: 0.85rem;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.9rem;
-  height: 1.9rem;
-  padding: 0;
-  background: var(--bg);
-  color: var(--dim);
-  border: 1px solid var(--rule);
-  border-radius: 2px;
-  cursor: pointer;
-  transition: color 0.12s ease, border-color 0.12s ease;
-}
-
-#theme-toggle:hover {
-  color: var(--accent);
-  border-color: var(--accent-dim);
-}
-
-#theme-toggle:focus-visible {
-  outline: 1px solid var(--accent);
-  outline-offset: 2px;
-}
-
-#theme-toggle .icon-sun { display: block; }
-#theme-toggle .icon-moon { display: none; }
-
-:root[data-theme="light"] #theme-toggle .icon-sun { display: none; }
-:root[data-theme="light"] #theme-toggle .icon-moon { display: block; }
-
 /* Static fallback when JS is off */
-#docs { padding: 1.4rem 1.25rem 4rem; }
+#docs { padding: 1.4rem 1.25rem 4rem; color: var(--fg); }
 
-@media (max-width: 860px) {
+/* ---- Responsive -------------------------------------------------------- */
+
+@media (max-width: 900px) {
+  body { padding: 1.25rem; }
+  #window { height: calc(100vh - 2.5rem); height: calc(100dvh - 2.5rem); }
   .fetch { flex-direction: column; gap: 1rem; }
-  .logo { font-size: 9px; }
+  .logo { font-size: 10px; }
   .info { padding-top: 0; }
 }
 
-@media (max-width: 560px) {
-  body { font-size: 13.5px; }
-  #term { padding: 1.1rem 0.9rem 4rem; }
-  .logo { font-size: 7.5px; }
+@media (max-width: 600px) {
+  body { padding: 0; font-size: 13.5px; }
+  #window {
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  #headerbar { height: 44px; }
+  /* Not enough room for decorative buttons beside the title on a phone. */
+  .hb-btn[disabled]:not(.hb-close) { display: none; }
+  #title { font-size: 14px; max-width: calc(100% - 6.5rem); }
+  #term { padding: 0.5rem 0.7rem 1.2rem; }
+  .logo { font-size: 8px; }
   .info > div { flex-direction: column; gap: 0; }
   .info dt { min-width: 0; }
   .info dd { padding-left: 1rem; }
