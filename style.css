@@ -1,0 +1,143 @@
+:root {
+  --bg: #ffffff;
+  --fg: #111111;
+  --muted: #6b6b6b;
+  --rule: #e6e6e6;
+}
+
+/* System preference, unless the toggle has forced light. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111111;
+    --fg: #ededed;
+    --muted: #9a9a9a;
+    --rule: #2a2a2a;
+  }
+}
+
+/* Explicit choice from the toggle wins in both directions. */
+:root[data-theme="dark"] {
+  --bg: #111111;
+  --fg: #ededed;
+  --muted: #9a9a9a;
+  --rule: #2a2a2a;
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+    "Liberation Mono", monospace;
+  font-size: 15px;
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+}
+
+main {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 4rem 1.5rem 6rem;
+}
+
+h1 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0 0 1.5rem;
+}
+
+.cn {
+  font-weight: 400;
+  color: var(--muted);
+  margin-left: 0.35rem;
+}
+
+h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 2.5rem 0 0.5rem;
+}
+
+p { margin: 0 0 1.5rem; }
+
+ul {
+  list-style: none;
+  margin: 0 0 1.5rem;
+  padding: 0;
+}
+
+li { margin: 0 0 0.35rem; }
+
+.sub {
+  color: var(--muted);
+  padding-left: 1.25rem;
+  display: inline-block;
+}
+
+.links a { margin-right: 0.15rem; }
+
+a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+
+a:hover {
+  text-decoration-color: var(--muted);
+  opacity: 0.7;
+}
+
+/* Theme toggle, pinned top right */
+#theme-toggle {
+  position: fixed;
+  top: 1.25rem;
+  right: 1.25rem;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  padding: 0;
+  background: var(--bg);
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  border-radius: 0.4rem;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+#theme-toggle:hover {
+  color: var(--fg);
+  border-color: var(--muted);
+}
+
+#theme-toggle:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 2px;
+}
+
+/* Show the icon for the theme you would switch *to*. */
+#theme-toggle .icon-sun { display: none; }
+#theme-toggle .icon-moon { display: block; }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) #theme-toggle .icon-sun { display: block; }
+  :root:not([data-theme="light"]) #theme-toggle .icon-moon { display: none; }
+}
+
+:root[data-theme="dark"] #theme-toggle .icon-sun { display: block; }
+:root[data-theme="dark"] #theme-toggle .icon-moon { display: none; }
+
+@media (max-width: 600px) {
+  main { padding: 3.5rem 1.25rem 4rem; }
+  h1 { font-size: 1.35rem; }
+  body { font-size: 14px; }
+  #theme-toggle { top: 0.9rem; right: 0.9rem; }
+}
