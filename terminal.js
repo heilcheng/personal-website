@@ -174,6 +174,21 @@
       );
     },
 
+    duo: function () {
+      return (
+        '<div class="row">he is watching. he is always watching.</div>' +
+        '<div class="sub">the streak is the only benchmark that has never let me down.</div>'
+      );
+    },
+
+    stars: function () {
+      return (
+        '<div class="row"><a href="https://github.com/heilcheng/awesome-agent-skills">' +
+        'awesome-agent-skills</a> <span class="star" data-stars="heilcheng/awesome-agent-skills">' +
+        "&#9733; ...</span></div>"
+      );
+    },
+
     corgi: function () {
       return (
         '<pre class="art">   /\\_/\\  ___\n  = o_o =_______\n   __^      __(  \\.__)\n' +
@@ -220,7 +235,10 @@
     }
 
     var out = fn(args, trimmed);
-    if (out) write(out);
+    if (out) {
+      var block = write(out);
+      if (block.querySelector("[data-stars]")) refreshStars();
+    }
   }
 
   function commonPrefix(list) {
@@ -308,6 +326,43 @@
     input.focus();
   });
 
+  // Draw Duo into the banner before anything reads its markup.
+  var logo = document.getElementById("logo");
+  if (logo && window.DUO) logo.innerHTML = window.DUO.render();
+
+  // Live star count, cached for an hour so a reload does not re-hit the API.
+  function refreshStars() {
+    var nodes = [].slice.call(document.querySelectorAll("[data-stars]"));
+    if (!nodes.length) return;
+    var repo = nodes[0].getAttribute("data-stars");
+    var key = "stars:" + repo;
+
+    function paint(count) {
+      var label = "\u2605 " + Number(count).toLocaleString("en-US");
+      [].slice.call(document.querySelectorAll('[data-stars="' + repo + '"]'))
+        .forEach(function (n) { n.textContent = label; });
+    }
+
+    try {
+      var cached = JSON.parse(localStorage.getItem(key) || "null");
+      if (cached && Date.now() - cached.at < 3600000) {
+        paint(cached.n);
+        return;
+      }
+    } catch (e) {}
+
+    fetch("https://api.github.com/repos/" + repo)
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        if (!data || typeof data.stargazers_count !== "number") return;
+        paint(data.stargazers_count);
+        try {
+          localStorage.setItem(key, JSON.stringify({ n: data.stargazers_count, at: Date.now() }));
+        } catch (e) {}
+      })
+      .catch(function () { /* keep whatever number is already on the page */ });
+  }
+
   // Boot.
   writeCommand("screenfetch");
   write(section("screenfetch"));
@@ -321,6 +376,8 @@
       '<div class="sub dim">(and yes, <span class="b">sudo</span> works exactly as well as it does at home.)</div>',
     "boot-hint"
   );
+
+  refreshStars();
 
   // Autofocus only where a keyboard is already present -- on touch devices this
   // would throw up the on-screen keyboard before the visitor has read anything.
