@@ -1,22 +1,24 @@
-/* Dark is the default here: this is a terminal. */
+/* Arch terminal. Dark by default. */
 :root {
-  --bg: #0b0e0e;
-  --fg: #d3d7d7;
-  --accent: #00cdcd;
-  --accent-dim: #0f8f8f;
-  --dim: #6f7878;
-  --rule: #1e2626;
-  --sel: #00cdcd33;
+  --bg: #1c1c1c;
+  --fg: #d6d6d6;
+  --accent: #2ba3e0;
+  --accent-dim: #1d7cad;
+  --dim: #7d7d7d;
+  --err: #e06c6c;
+  --rule: #2e2e2e;
+  --sel: #2ba3e044;
 }
 
 :root[data-theme="light"] {
-  --bg: #fbfbf8;
-  --fg: #1c2020;
-  --accent: #0a7676;
-  --accent-dim: #0a7676;
-  --dim: #6b7373;
-  --rule: #e2e4e0;
-  --sel: #0a767622;
+  --bg: #fbfbf9;
+  --fg: #22262a;
+  --accent: #0f74a8;
+  --accent-dim: #0f74a8;
+  --dim: #6d7378;
+  --err: #b83c3c;
+  --rule: #e3e4e2;
+  --sel: #0f74a822;
 }
 
 * { box-sizing: border-box; }
@@ -31,113 +33,62 @@ body {
   min-height: 100vh;
   background: var(--bg);
   color: var(--fg);
-  font-family: "SFMono-Regular", ui-monospace, "SF Mono", Menlo, Consolas,
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
     "DejaVu Sans Mono", "Liberation Mono", monospace;
-  font-size: 13.5px;
-  line-height: 1.5;
+  font-size: 14.5px;
+  line-height: 1.62;
   -webkit-font-smoothing: antialiased;
   font-variant-ligatures: none;
 }
 
 ::selection { background: var(--sel); }
 
-.term {
-  max-width: 74rem;
-  margin: 0 auto;
-  padding: 1.5rem 1.25rem 4rem;
+#term {
+  min-height: 100vh;
+  padding: 1.4rem 1.25rem 5rem;
+  cursor: text;
 }
 
-/* Prompt lines */
+/* Prompt + typed command lines */
 .cmd {
-  margin: 1.9rem 0 0.4rem;
-  white-space: nowrap;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: none;
+  margin: 1.5rem 0 0.35rem;
 }
 
-.cmd::-webkit-scrollbar { display: none; }
+#screen > .cmd:first-child { margin-top: 0; }
 
-.term > .cmd:first-child { margin-top: 0; }
-
-.prompt { color: var(--fg); }
+.prompt {
+  color: var(--fg);
+  white-space: nowrap;
+}
 
 .uh {
   color: var(--accent);
   font-weight: 700;
 }
 
-.cursor {
-  display: inline-block;
-  width: 0.6em;
-  height: 1.05em;
-  margin-left: 0.15em;
-  background: var(--accent);
-  vertical-align: text-bottom;
-  animation: blink 1.1s steps(1) infinite;
-}
+.at { color: var(--accent-dim); }
 
-@keyframes blink {
-  0%, 49% { opacity: 1; }
-  50%, 100% { opacity: 0; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .cursor { animation: none; }
-}
-
-/* screenfetch block: logo beside the info table */
-.fetch {
+/* Live input line */
+#input-line {
   display: flex;
-  align-items: flex-start;
-  gap: 2.5rem;
-  margin: 0.6rem 0 0.2rem;
-  overflow-x: auto;
-  scrollbar-width: none;
+  align-items: baseline;
+  gap: 0.55ch;
+  margin-top: 1.5rem;
 }
 
-.fetch::-webkit-scrollbar { display: none; }
-
-.logo {
-  margin: 0;
-  flex: none;
-  color: var(--accent);
-  font-size: 11px;
-  line-height: 1.18;
-  white-space: pre;
-  font-family: inherit;
-}
-
-.info {
-  margin: 0;
-  padding-top: 0.9rem;
+#cmdline {
+  flex: 1 1 auto;
   min-width: 0;
-}
-
-.info > div {
-  display: flex;
-  gap: 0.5rem;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  padding: 0;
   margin: 0;
+  color: var(--fg);
+  caret-color: var(--accent);
+  font: inherit;
+  line-height: inherit;
 }
-
-.info .host,
-.info .rule { display: block; }
-
-.info .rule {
-  color: var(--dim);
-  margin-bottom: 0.15rem;
-}
-
-.info dt {
-  color: var(--accent);
-  font-weight: 700;
-  flex: none;
-  min-width: 5.5rem;
-}
-
-.info dt::after { content: ":"; }
-
-.info dd { margin: 0; }
 
 /* Command output */
 .out { margin: 0 0 0.2rem; }
@@ -156,12 +107,35 @@ body {
   font-weight: 700;
 }
 
+.dir {
+  color: var(--accent);
+  font-weight: 700;
+}
+
 .dim { color: var(--dim); }
+
+.err { color: var(--err); }
+
+.hint { color: var(--fg); }
 
 .sub {
   color: var(--dim);
   padding-left: 1.5rem;
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.3rem;
+}
+
+.cols {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 2.2rem;
+}
+
+.art {
+  margin: 0.2rem 0;
+  color: var(--accent);
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1.25;
 }
 
 a {
@@ -182,7 +156,60 @@ a:focus-visible {
   outline-offset: 1px;
 }
 
-/* Theme toggle, pinned top right */
+/* screenfetch block */
+.fetch {
+  display: flex;
+  align-items: flex-start;
+  gap: 2.5rem;
+  margin: 0.5rem 0 0.3rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.fetch::-webkit-scrollbar { display: none; }
+
+.logo {
+  margin: 0;
+  flex: none;
+  color: var(--accent);
+  font-size: 11.5px;
+  line-height: 1.18;
+  white-space: pre;
+  font-family: inherit;
+}
+
+.info {
+  margin: 0;
+  padding-top: 0.8rem;
+  min-width: 0;
+}
+
+.info > div {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.info .host,
+.info .rule { display: block; }
+
+.info .rule {
+  color: var(--dim);
+  margin-bottom: 0.1rem;
+}
+
+.info dt {
+  color: var(--accent);
+  font-weight: 700;
+  flex: none;
+  min-width: 5.5rem;
+}
+
+.info dt::after { content: ":"; }
+
+.info dd { margin: 0; }
+
+/* Theme toggle */
 #theme-toggle {
   position: fixed;
   top: 0.85rem;
@@ -212,27 +239,27 @@ a:focus-visible {
   outline-offset: 2px;
 }
 
-/* Show the icon for the theme you would switch *to*. */
 #theme-toggle .icon-sun { display: block; }
 #theme-toggle .icon-moon { display: none; }
 
 :root[data-theme="light"] #theme-toggle .icon-sun { display: none; }
 :root[data-theme="light"] #theme-toggle .icon-moon { display: block; }
 
+/* Static fallback when JS is off */
+#docs { padding: 1.4rem 1.25rem 4rem; }
+
 @media (max-width: 860px) {
-  .fetch {
-    flex-direction: column;
-    gap: 1.1rem;
-  }
+  .fetch { flex-direction: column; gap: 1rem; }
   .logo { font-size: 9px; }
   .info { padding-top: 0; }
 }
 
 @media (max-width: 560px) {
-  body { font-size: 12.5px; }
-  .term { padding: 1.1rem 0.9rem 3rem; }
+  body { font-size: 13.5px; }
+  #term { padding: 1.1rem 0.9rem 4rem; }
   .logo { font-size: 7.5px; }
   .info > div { flex-direction: column; gap: 0; }
   .info dt { min-width: 0; }
   .info dd { padding-left: 1rem; }
+  .cols { gap: 0.2rem 1.4rem; }
 }
