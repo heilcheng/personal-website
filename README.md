@@ -1,6 +1,7 @@
 # personal-website
 
-Static one-page site. `index.html`, `style.css`, `theme.js`. No build step.
+Static one-page site styled as an Arch terminal. `index.html`, `style.css`, `theme.js`.
+No build step. Served by GitHub Pages at haileycheng.com.
 
 Preview locally:
 

@@ -3,12 +3,10 @@
   var button = document.getElementById("theme-toggle");
   if (!button) return;
 
+  // The stylesheet renders dark unless data-theme="light" is set, so an
+  // unset attribute means dark -- do not fall back to the system preference.
   function currentTheme() {
-    var forced = root.getAttribute("data-theme");
-    if (forced === "light" || forced === "dark") return forced;
-    return window.matchMedia("(prefers-color-scheme: dark)").matches
-      ? "dark"
-      : "light";
+    return root.getAttribute("data-theme") === "light" ? "light" : "dark";
   }
 
   button.addEventListener("click", function () {

@@ -1,143 +1,238 @@
+/* Dark is the default here: this is a terminal. */
 :root {
-  --bg: #ffffff;
-  --fg: #111111;
-  --muted: #6b6b6b;
-  --rule: #e6e6e6;
+  --bg: #0b0e0e;
+  --fg: #d3d7d7;
+  --accent: #00cdcd;
+  --accent-dim: #0f8f8f;
+  --dim: #6f7878;
+  --rule: #1e2626;
+  --sel: #00cdcd33;
 }
 
-/* System preference, unless the toggle has forced light. */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #111111;
-    --fg: #ededed;
-    --muted: #9a9a9a;
-    --rule: #2a2a2a;
-  }
-}
-
-/* Explicit choice from the toggle wins in both directions. */
-:root[data-theme="dark"] {
-  --bg: #111111;
-  --fg: #ededed;
-  --muted: #9a9a9a;
-  --rule: #2a2a2a;
+:root[data-theme="light"] {
+  --bg: #fbfbf8;
+  --fg: #1c2020;
+  --accent: #0a7676;
+  --accent-dim: #0a7676;
+  --dim: #6b7373;
+  --rule: #e2e4e0;
+  --sel: #0a767622;
 }
 
 * { box-sizing: border-box; }
 
-html { -webkit-text-size-adjust: 100%; }
+html {
+  background: var(--bg);
+  -webkit-text-size-adjust: 100%;
+}
 
 body {
   margin: 0;
+  min-height: 100vh;
   background: var(--bg);
   color: var(--fg);
-  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
-    "Liberation Mono", monospace;
-  font-size: 15px;
-  line-height: 1.75;
+  font-family: "SFMono-Regular", ui-monospace, "SF Mono", Menlo, Consolas,
+    "DejaVu Sans Mono", "Liberation Mono", monospace;
+  font-size: 13.5px;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  font-variant-ligatures: none;
 }
 
-main {
-  max-width: 46rem;
+::selection { background: var(--sel); }
+
+.term {
+  max-width: 74rem;
   margin: 0 auto;
-  padding: 4rem 1.5rem 6rem;
+  padding: 1.5rem 1.25rem 4rem;
 }
 
-h1 {
-  font-size: 1.6rem;
+/* Prompt lines */
+.cmd {
+  margin: 1.9rem 0 0.4rem;
+  white-space: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.cmd::-webkit-scrollbar { display: none; }
+
+.term > .cmd:first-child { margin-top: 0; }
+
+.prompt { color: var(--fg); }
+
+.uh {
+  color: var(--accent);
   font-weight: 700;
-  letter-spacing: -0.01em;
-  margin: 0 0 1.5rem;
 }
 
-.cn {
-  font-weight: 400;
-  color: var(--muted);
-  margin-left: 0.35rem;
+.cursor {
+  display: inline-block;
+  width: 0.6em;
+  height: 1.05em;
+  margin-left: 0.15em;
+  background: var(--accent);
+  vertical-align: text-bottom;
+  animation: blink 1.1s steps(1) infinite;
 }
 
-h2 {
-  font-size: 1rem;
+@keyframes blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cursor { animation: none; }
+}
+
+/* screenfetch block: logo beside the info table */
+.fetch {
+  display: flex;
+  align-items: flex-start;
+  gap: 2.5rem;
+  margin: 0.6rem 0 0.2rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.fetch::-webkit-scrollbar { display: none; }
+
+.logo {
+  margin: 0;
+  flex: none;
+  color: var(--accent);
+  font-size: 11px;
+  line-height: 1.18;
+  white-space: pre;
+  font-family: inherit;
+}
+
+.info {
+  margin: 0;
+  padding-top: 0.9rem;
+  min-width: 0;
+}
+
+.info > div {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.info .host,
+.info .rule { display: block; }
+
+.info .rule {
+  color: var(--dim);
+  margin-bottom: 0.15rem;
+}
+
+.info dt {
+  color: var(--accent);
   font-weight: 700;
-  margin: 2.5rem 0 0.5rem;
+  flex: none;
+  min-width: 5.5rem;
 }
 
-p { margin: 0 0 1.5rem; }
+.info dt::after { content: ":"; }
 
-ul {
-  list-style: none;
-  margin: 0 0 1.5rem;
-  padding: 0;
+.info dd { margin: 0; }
+
+/* Command output */
+.out { margin: 0 0 0.2rem; }
+
+.row { margin: 0; }
+
+.k {
+  color: var(--accent);
+  font-weight: 700;
 }
 
-li { margin: 0 0 0.35rem; }
+.org { color: var(--fg); }
+
+.b {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.dim { color: var(--dim); }
 
 .sub {
-  color: var(--muted);
-  padding-left: 1.25rem;
-  display: inline-block;
+  color: var(--dim);
+  padding-left: 1.5rem;
+  margin-bottom: 0.35rem;
 }
-
-.links a { margin-right: 0.15rem; }
 
 a {
   color: inherit;
   text-decoration: underline;
-  text-underline-offset: 3px;
+  text-underline-offset: 2px;
   text-decoration-thickness: 1px;
+  text-decoration-color: var(--accent-dim);
 }
 
 a:hover {
-  text-decoration-color: var(--muted);
-  opacity: 0.7;
+  color: var(--accent);
+  background: var(--sel);
+}
+
+a:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 1px;
 }
 
 /* Theme toggle, pinned top right */
 #theme-toggle {
   position: fixed;
-  top: 1.25rem;
-  right: 1.25rem;
+  top: 0.85rem;
+  right: 0.85rem;
   z-index: 10;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2.1rem;
-  height: 2.1rem;
+  width: 1.9rem;
+  height: 1.9rem;
   padding: 0;
   background: var(--bg);
-  color: var(--muted);
+  color: var(--dim);
   border: 1px solid var(--rule);
-  border-radius: 0.4rem;
+  border-radius: 2px;
   cursor: pointer;
-  transition: color 0.15s ease, border-color 0.15s ease;
+  transition: color 0.12s ease, border-color 0.12s ease;
 }
 
 #theme-toggle:hover {
-  color: var(--fg);
-  border-color: var(--muted);
+  color: var(--accent);
+  border-color: var(--accent-dim);
 }
 
 #theme-toggle:focus-visible {
-  outline: 2px solid var(--fg);
+  outline: 1px solid var(--accent);
   outline-offset: 2px;
 }
 
 /* Show the icon for the theme you would switch *to*. */
-#theme-toggle .icon-sun { display: none; }
-#theme-toggle .icon-moon { display: block; }
+#theme-toggle .icon-sun { display: block; }
+#theme-toggle .icon-moon { display: none; }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) #theme-toggle .icon-sun { display: block; }
-  :root:not([data-theme="light"]) #theme-toggle .icon-moon { display: none; }
+:root[data-theme="light"] #theme-toggle .icon-sun { display: none; }
+:root[data-theme="light"] #theme-toggle .icon-moon { display: block; }
+
+@media (max-width: 860px) {
+  .fetch {
+    flex-direction: column;
+    gap: 1.1rem;
+  }
+  .logo { font-size: 9px; }
+  .info { padding-top: 0; }
 }
 
-:root[data-theme="dark"] #theme-toggle .icon-sun { display: block; }
-:root[data-theme="dark"] #theme-toggle .icon-moon { display: none; }
-
-@media (max-width: 600px) {
-  main { padding: 3.5rem 1.25rem 4rem; }
-  h1 { font-size: 1.35rem; }
-  body { font-size: 14px; }
-  #theme-toggle { top: 0.9rem; right: 0.9rem; }
+@media (max-width: 560px) {
+  body { font-size: 12.5px; }
+  .term { padding: 1.1rem 0.9rem 3rem; }
+  .logo { font-size: 7.5px; }
+  .info > div { flex-direction: column; gap: 0; }
+  .info dt { min-width: 0; }
+  .info dd { padding-left: 1rem; }
 }
