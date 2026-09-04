@@ -74,6 +74,7 @@
     education: function () { return section("education"); },
     edu: function () { return section("education"); },
     stuff: function () { return section("stuff"); },
+    awards: function () { return section("stuff"); },
     interests: function () { return section("interests"); },
     contact: function () { return section("contact"); },
     screenfetch: function () { return section("screenfetch"); },
@@ -171,13 +172,6 @@
       return (
         '<div class="row">42 metres. 38,000 balloons. one Guinness World Record.</div>' +
         '<div class="sub">ushering in the Year of the Dragon, and never doing that again.</div>'
-      );
-    },
-
-    duo: function () {
-      return (
-        '<div class="row">he is watching. he is always watching.</div>' +
-        '<div class="sub">the streak is the only benchmark that has never let me down.</div>'
       );
     },
 
@@ -325,10 +319,6 @@
     if (String(window.getSelection())) return;
     input.focus();
   });
-
-  // Draw Duo into the banner before anything reads its markup.
-  var logo = document.getElementById("logo");
-  if (logo && window.DUO) logo.innerHTML = window.DUO.render();
 
   // Live star count, cached for an hour so a reload does not re-hit the API.
   function refreshStars() {

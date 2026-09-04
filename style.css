@@ -2,12 +2,12 @@
 :root {
   --bg: #1c1c1c;
   --fg: #d6d6d6;
-  --accent: #2ba3e0;
-  --accent-dim: #1d7cad;
+  --accent: #56c5f5;
+  --accent-dim: #2f93c4;
   --dim: #7d7d7d;
   --err: #e06c6c;
   --rule: #2e2e2e;
-  --sel: #2ba3e044;
+  --sel: #56c5f544;
 }
 
 :root[data-theme="light"] {
@@ -168,15 +168,19 @@ a:focus-visible {
 
 .fetch::-webkit-scrollbar { display: none; }
 
-/* Duo sprite: two block glyphs per pixel, so line-height keeps cells square. */
 .logo {
   margin: 0;
   flex: none;
-  font-size: 9px;
-  line-height: 1;
-  letter-spacing: 0;
+  color: var(--accent);
+  font-size: 11.5px;
+  line-height: 1.18;
   white-space: pre;
   font-family: inherit;
+}
+
+.heading {
+  color: var(--accent);
+  font-weight: 700;
 }
 
 .star {
@@ -259,14 +263,14 @@ a:focus-visible {
 
 @media (max-width: 860px) {
   .fetch { flex-direction: column; gap: 1rem; }
-  .logo { font-size: 7px; }
+  .logo { font-size: 9px; }
   .info { padding-top: 0; }
 }
 
 @media (max-width: 560px) {
   body { font-size: 13.5px; }
   #term { padding: 1.1rem 0.9rem 4rem; }
-  .logo { font-size: 6px; }
+  .logo { font-size: 7.5px; }
   .info > div { flex-direction: column; gap: 0; }
   .info dt { min-width: 0; }
   .info dd { padding-left: 1rem; }
