@@ -46,6 +46,86 @@
     term.scrollTop = term.scrollHeight;
   }
 
+  // ---- msg: deliver straight to my inbox ------------------------------------
+  // GitHub Pages has no backend, so messages go through FormSubmit, which
+  // forwards each POST as an email. After activating, swap the address below
+  // for the random alias FormSubmit emails you, so the inbox is not in the code.
+  var MSG_ENDPOINT = "https://formsubmit.co/ajax/haileycheng@proton.me";
+  var MSG_MAX = 2000;
+  var MSG_COOLDOWN = 30000;
+  var lastSent = 0;
+
+  function sendMessage(body, from) {
+    var status = write('<div class="row dim">sending…</div>');
+    scrollDown();
+    var payload = {
+      message: body,
+      _subject: "haileycheng.com · new msg",
+      _template: "box",
+      _captcha: "false",
+      _honey: ""
+    };
+    if (from) {
+      payload.email = from;
+      payload._replyto = from;
+    }
+    fetch(MSG_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify(payload)
+    })
+      .then(function (r) {
+        return r.json().then(function (j) {
+          if (!r.ok || String(j.success) !== "true") throw new Error(j.message || r.status);
+        });
+      })
+      .then(function () {
+        lastSent = Date.now();
+        status.innerHTML =
+          '<div class="row">sent. it is in my inbox now.</div>' +
+          (from ? '<div class="sub">i will reply to ' + esc(from) + "</div>" : '<div class="sub">thanks for saying hi</div>');
+        scrollDown();
+      })
+      .catch(function () {
+        var href =
+          "mailto:haileycheng@proton.me?subject=" +
+          encodeURIComponent("hello from haileycheng.com") +
+          "&body=" + encodeURIComponent(body);
+        status.innerHTML =
+          '<div class="row err">msg: could not send right now.</div>' +
+          '<div class="sub"><a href="' + href + '">open it in your mail client</a> instead</div>';
+        scrollDown();
+      });
+  }
+
+  // A one-shot question: the next Enter goes to fn instead of the shell.
+  var pending = null;
+  var promptEl = document.querySelector("#input-line .prompt");
+
+  function ask(label, fn) {
+    pending = { label: label, fn: fn };
+    if (promptEl) promptEl.textContent = label;
+  }
+
+  function answer(value) {
+    var p = pending;
+    pending = null;
+    if (promptEl) promptEl.textContent = PROMPT;
+    var line = document.createElement("p");
+    line.className = "cmd";
+    line.innerHTML = '<span class="prompt">' + esc(p.label) + "</span> " + esc(value);
+    screenEl.appendChild(line);
+    p.fn(value);
+  }
+
+  function cancelAsk() {
+    if (!pending) return false;
+    pending = null;
+    if (promptEl) promptEl.textContent = PROMPT;
+    write('<div class="row dim">^C  message discarded</div>');
+    return true;
+  }
+
   var COMMANDS = {
     help: function () {
       return (
@@ -55,7 +135,7 @@
         '<div class="row"><span class="k">stuff</span>      medals, records, and one very large dragon</div>' +
         '<div class="row"><span class="k">interests</span>  what i think about unprompted</div>' +
         '<div class="row"><span class="k">contact</span>    how to reach me</div>' +
-        '<div class="row"><span class="k">msg</span> &lt;text&gt; say something to me directly</div>' +
+        '<div class="row"><span class="k">msg</span> &lt;text&gt; send a note straight to my inbox</div>' +
         '<div class="row"><span class="k">ls</span>         list what is on this machine</div>' +
         '<div class="row"><span class="k">cat</span> &lt;file&gt; read one of them</div>' +
         '<div class="row"><span class="k">screenfetch</span> redraw the banner</div>' +
@@ -113,16 +193,22 @@
           '<div class="sub">e.g. msg i also think the dragon was structurally unnecessary</div>'
         );
       }
-      var href =
-        "mailto:haileycheng@proton.me?subject=" +
-        encodeURIComponent("hello from haileycheng.com") +
-        "&body=" +
-        encodeURIComponent(body);
-      return (
-        '<div class="row">queued: "' + esc(body) + '"</div>' +
-        '<div class="row">this terminal has no backend, so nothing sends itself. ' +
-        '<a href="' + href + '">open it in your mail client</a> and it is on its way.</div>'
-      );
+      if (body.length > MSG_MAX) {
+        return '<div class="row err">msg: too long (' + body.length + "/" + MSG_MAX + " characters)</div>";
+      }
+      var wait = MSG_COOLDOWN - (Date.now() - lastSent);
+      if (wait > 0) {
+        return '<div class="row err">msg: easy there. try again in ' + Math.ceil(wait / 1000) + "s</div>";
+      }
+      ask("reply-to email (optional, enter to skip) ›", function (from) {
+        from = from.trim();
+        if (from && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(from)) {
+          write('<div class="row err">that does not look like an email. sending without it.</div>');
+          from = "";
+        }
+        sendMessage(body, from);
+      });
+      return '<div class="row dim">draft: "' + esc(body) + '"</div>';
     },
 
     theme: function () {
@@ -341,7 +427,8 @@
     if (e.key === "Enter") {
       var value = input.value;
       input.value = "";
-      run(value);
+      if (pending) answer(value);
+      else run(value);
       scrollDown();
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
@@ -361,6 +448,9 @@
     } else if (e.key === "Tab") {
       e.preventDefault();
       complete();
+    } else if (e.key === "c" && e.ctrlKey && !input.value && cancelAsk()) {
+      e.preventDefault();
+      scrollDown();
     } else if (e.key === "l" && e.ctrlKey) {
       e.preventDefault();
       screenEl.innerHTML = "";
