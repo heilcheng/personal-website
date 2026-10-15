@@ -351,9 +351,9 @@ a:focus-visible {
   flex: none;
   color: var(--accent);
   font-size: 13.5px;
-  line-height: 1.18;
-  white-space: pre;
-  font-family: inherit;
+  width: 22em;
+  height: 14em;
+  margin-top: 0.85rem;
 }
 
 .info {
