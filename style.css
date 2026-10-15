@@ -87,9 +87,10 @@ body::before {
 #window {
   position: relative;
   z-index: 1;
-  width: min(960px, 100%);
-  height: min(700px, calc(100vh - 8rem));
-  height: min(700px, calc(100dvh - 8rem));
+  /* A fixed 16:10 Mac window that shrinks to fit both viewport width and height. */
+  width: min(820px, 100%, calc((100vh - 8rem) * 1.6));
+  width: min(820px, 100%, calc((100dvh - 8rem) * 1.6));
+  aspect-ratio: 16 / 10;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -222,7 +223,7 @@ body::before {
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 1.75rem 2rem 2rem;
+  padding: 1.5rem 1.75rem 1.75rem;
   cursor: text;
   scrollbar-width: thin;
   scrollbar-color: var(--control) transparent;
@@ -361,7 +362,7 @@ a:focus-visible {
 
 .hello .name {
   margin: 0;
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 600;
   line-height: 1.15;
   letter-spacing: -0.022em;
@@ -409,14 +410,19 @@ a:focus-visible {
 
 @media (max-width: 900px) {
   body { padding: 1.5rem; }
-  #window { height: calc(100vh - 3rem); height: calc(100dvh - 3rem); }
+  #window {
+    width: min(720px, 100%, calc((100vh - 3rem) * 1.6));
+    width: min(720px, 100%, calc((100dvh - 3rem) * 1.6));
+  }
 }
 
 @media (max-width: 600px) {
-  body { padding: 0.6rem; font-size: 13px; }
+  body { padding: 1rem; font-size: 12.5px; }
+  /* Portrait on phones: a tall 9:16 card that still floats on the page. */
   #window {
-    height: calc(100vh - 1.2rem);
-    height: calc(100dvh - 1.2rem);
+    width: min(100%, calc((100vh - 2rem) * 0.5625));
+    width: min(100%, calc((100dvh - 2rem) * 0.5625));
+    aspect-ratio: 9 / 16;
     border-radius: 14px;
   }
   #headerbar { height: 46px; }
