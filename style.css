@@ -1,37 +1,37 @@
-/* A GNOME Terminal window (Adwaita dark) sitting on the purple wallpaper. */
+/* A macOS-style terminal window floating over a living white backdrop. */
 :root {
-  --wall: #2a1450;
-  --hb-bg: #303030;
-  --hb-fg: #f0f0f0;
-  --hb-btn: #b8b8b8;
-  --hb-close: rgba(255, 255, 255, 0.16);
-  --term-bg: #1e1e1e;
-  --fg: #f2f2f2;
+  --wall: #fbfbfd;
+  --hb-bg: #2c2c2e;
+  --hb-fg: #9a9aa0;
+  --hb-btn: #9a9aa0;
+  --term-bg: #1c1c1e;
+  --fg: #e8e8ed;
   --accent: #23b7da;
   --accent-dim: #1793ad;
-  --dim: #9a9a9a;
-  --err: #f28b82;
-  --rule: #3a3a3a;
+  --dim: #8e8e93;
+  --err: #ff6961;
+  --rule: #3a3a3c;
+  --line: rgba(255, 255, 255, 0.06);
   --sel: rgba(35, 183, 218, 0.28);
-  --pop-bg: #2b2b2b;
-  --pop-hover: #3a3a3a;
+  --pop-bg: #2c2c2e;
+  --pop-hover: #3a3a3c;
 }
 
 :root[data-theme="light"] {
-  --hb-bg: #ebebeb;
-  --hb-fg: #2e2e2e;
-  --hb-btn: #5a5a5a;
-  --hb-close: rgba(0, 0, 0, 0.1);
+  --hb-bg: #ececec;
+  --hb-fg: #6e6e73;
+  --hb-btn: #6e6e73;
   --term-bg: #ffffff;
-  --fg: #1e1e1e;
+  --fg: #1d1d1f;
   --accent: #0b7f9a;
   --accent-dim: #0b7f9a;
-  --dim: #6f6f6f;
-  --err: #c0392b;
-  --rule: #d8d8d8;
+  --dim: #6e6e73;
+  --err: #d70015;
+  --rule: #d2d2d7;
+  --line: rgba(0, 0, 0, 0.08);
   --sel: rgba(11, 127, 154, 0.18);
   --pop-bg: #ffffff;
-  --pop-hover: #f0f0f0;
+  --pop-hover: #f2f2f4;
 }
 
 * { box-sizing: border-box; }
@@ -45,15 +45,15 @@ body {
   margin: 0;
   min-height: 100vh;
   min-height: 100dvh;
-  padding: 2.5rem 2.75rem;
+  padding: 3rem 2.75rem;
   display: flex;
-  align-items: stretch;
+  align-items: center;
   justify-content: center;
-  background: var(--wall) url("wallpaper.svg") center / cover no-repeat fixed;
+  background: var(--wall);
   color: var(--fg);
-  font-family: "Source Code Pro", ui-monospace, SFMono-Regular, "SF Mono", Menlo,
-    Consolas, "DejaVu Sans Mono", monospace;
-  font-size: 15px;
+  font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas,
+    "DejaVu Sans Mono", monospace;
+  font-size: 14px;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   font-variant-ligatures: none;
@@ -61,21 +61,31 @@ body {
 
 ::selection { background: var(--sel); }
 
+#bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
 /* ---- Window ------------------------------------------------------------ */
 
 #window {
-  width: min(1240px, 100%);
-  height: calc(100vh - 5rem);
-  height: calc(100dvh - 5rem);
+  position: relative;
+  z-index: 1;
+  width: min(1040px, 100%);
+  height: min(760px, calc(100vh - 6rem));
+  height: min(760px, calc(100dvh - 6rem));
   display: flex;
   flex-direction: column;
   overflow: hidden;
   border-radius: 12px;
   background: var(--term-bg);
   box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.55),
-    0 24px 60px rgba(0, 0, 0, 0.55),
-    0 4px 14px rgba(0, 0, 0, 0.35);
+    0 0 0 0.5px rgba(0, 0, 0, 0.35),
+    inset 0 0 0 0.5px rgba(255, 255, 255, 0.12),
+    0 22px 70px rgba(0, 0, 0, 0.28),
+    0 6px 18px rgba(0, 0, 0, 0.12);
 }
 
 /* ---- Header bar -------------------------------------------------------- */
@@ -83,26 +93,43 @@ body {
 #headerbar {
   position: relative;
   flex: none;
-  height: 46px;
+  height: 40px;
   display: flex;
   align-items: center;
-  padding: 0 0.6rem;
+  padding: 0 0.6rem 0 0.9rem;
   background: var(--hb-bg);
   color: var(--hb-fg);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.35);
-  font-family: -apple-system, BlinkMacSystemFont, "Cantarell", "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
+  border-bottom: 1px solid var(--line);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue",
+    "Segoe UI", Roboto, Arial, sans-serif;
   user-select: none;
 }
+
+/* Traffic lights */
+.lights {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.lights i {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.2);
+}
+
+.lights i:nth-child(1) { background: #ff5f57; }
+.lights i:nth-child(2) { background: #febc2e; }
+.lights i:nth-child(3) { background: #28c840; }
 
 #title {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
   margin: 0;
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: 0.01em;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
   white-space: nowrap;
   max-width: calc(100% - 12rem);
   overflow: hidden;
@@ -120,11 +147,11 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: 28px;
+  height: 28px;
   padding: 0;
   border: 0;
-  border-radius: 7px;
+  border-radius: 6px;
   background: transparent;
   color: var(--hb-btn);
   cursor: default;
@@ -148,16 +175,7 @@ body {
   outline-offset: -2px;
 }
 
-.hb-close {
-  width: 26px;
-  height: 26px;
-  margin-left: 0.4rem;
-  border-radius: 50%;
-  background: var(--hb-close);
-  color: var(--hb-fg);
-}
-
-/* GNOME-style popover under the menu button */
+/* Popover under the menu button */
 .popover[hidden] { display: none; }
 
 .popover {
@@ -168,9 +186,11 @@ body {
   min-width: 200px;
   padding: 0.35rem;
   background: var(--pop-bg);
-  border: 1px solid rgba(0, 0, 0, 0.45);
+  border: 0.5px solid rgba(0, 0, 0, 0.3);
   border-radius: 10px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.3);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -182,7 +202,7 @@ body {
   border: 0;
   border-radius: 6px;
   background: transparent;
-  color: var(--hb-fg);
+  color: var(--fg);
   font: inherit;
   font-size: 14px;
   cursor: pointer;
@@ -201,10 +221,10 @@ body {
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 0.55rem 0.8rem 1.4rem;
+  padding: 0.9rem 1.2rem 1.4rem;
   cursor: text;
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+  scrollbar-color: rgba(128, 128, 128, 0.45) transparent;
 }
 
 .cmd { margin: 1.25rem 0 0.15rem; }
@@ -372,7 +392,7 @@ a:focus-visible {
 .info .rule { display: block; }
 
 .info .rule {
-  color: var(--dim);
+  color: var(--rule);
   margin-bottom: 0.1rem;
 }
 
@@ -401,17 +421,12 @@ a:focus-visible {
 }
 
 @media (max-width: 600px) {
-  body { padding: 0; font-size: 13.5px; }
+  body { padding: 0.75rem; font-size: 13px; }
   #window {
-    width: 100%;
-    height: 100vh;
-    height: 100dvh;
-    border-radius: 0;
-    box-shadow: none;
+    height: calc(100vh - 1.5rem);
+    height: calc(100dvh - 1.5rem);
   }
-  #headerbar { height: 44px; }
-  /* Not enough room for decorative buttons beside the title on a phone. */
-  .hb-btn[disabled]:not(.hb-close) { display: none; }
+  
   #title { font-size: 14px; max-width: calc(100% - 6.5rem); }
   #term { padding: 0.5rem 0.7rem 1.2rem; }
   .logo { font-size: 8px; }
