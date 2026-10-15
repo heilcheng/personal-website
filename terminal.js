@@ -65,10 +65,8 @@
       _captcha: "false",
       _honey: ""
     };
-    if (from) {
-      payload.email = from;
-      payload._replyto = from;
-    }
+    payload.email = from;
+    payload._replyto = from;
     fetch(MSG_ENDPOINT, {
       method: "POST",
       headers: { "Content-Type": "application/json", Accept: "application/json" },
@@ -83,7 +81,7 @@
         lastSent = Date.now();
         status.innerHTML =
           '<div class="row">sent. it is in my inbox now.</div>' +
-          (from ? '<div class="sub">i will reply to ' + esc(from) + "</div>" : '<div class="sub">thanks for saying hi</div>');
+          '<div class="sub">i will reply to ' + esc(from) + "</div>";
         scrollDown();
       })
       .catch(function () {
@@ -96,6 +94,23 @@
           '<div class="sub"><a href="' + href + '">open it in your mail client</a> instead</div>';
         scrollDown();
       });
+  }
+
+  // A reply address is required: keep asking until it looks like an email,
+  // or the visitor gives up with Ctrl-C.
+  function askContact(body) {
+    ask("your email (so i can reply) ›", function (from) {
+      from = from.trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(from)) {
+        write(
+          '<div class="row err">' + (from ? "that does not look like an email." : "an email is required.") + "</div>" +
+          '<div class="sub dim">try again, or ctrl+c to discard</div>'
+        );
+        askContact(body);
+        return;
+      }
+      sendMessage(body, from);
+    });
   }
 
   // A one-shot question: the next Enter goes to fn instead of the shell.
@@ -200,14 +215,7 @@
       if (wait > 0) {
         return '<div class="row err">msg: easy there. try again in ' + Math.ceil(wait / 1000) + "s</div>";
       }
-      ask("reply-to email (optional, enter to skip) ›", function (from) {
-        from = from.trim();
-        if (from && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(from)) {
-          write('<div class="row err">that does not look like an email. sending without it.</div>');
-          from = "";
-        }
-        sendMessage(body, from);
-      });
+      askContact(body);
       return '<div class="row dim">draft: "' + esc(body) + '"</div>';
     },
 
