@@ -48,9 +48,9 @@
 
   // ---- msg: deliver straight to my inbox ------------------------------------
   // GitHub Pages has no backend, so messages go through FormSubmit, which
-  // forwards each POST as an email. After activating, swap the address below
-  // for the random alias FormSubmit emails you, so the inbox is not in the code.
-  var MSG_ENDPOINT = "https://formsubmit.co/ajax/haileycheng@proton.me";
+  // forwards each POST as an email. The endpoint uses FormSubmit's random
+  // alias for my inbox, so the address itself is not in the code.
+  var MSG_ENDPOINT = "https://formsubmit.co/ajax/a14a07c869a9caa9caf92fee863b1097";
   var MSG_MAX = 2000;
   var MSG_COOLDOWN = 30000;
   var lastSent = 0;
