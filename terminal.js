@@ -5,7 +5,7 @@
   var term = document.getElementById("term");
   if (!screenEl || !input || !docs) return;
 
-  var PROMPT = "[hailey@haileycheng.com ~]$";
+  var PROMPT = "hailey@haileycheng ~ %";
   var history = [];
   var histIndex = 0;
   var booted = Date.now();
@@ -146,7 +146,7 @@
 
     pwd: function () { return '<div class="row">/home/hailey</div>'; },
     date: function () { return '<div class="row">' + new Date().toString() + "</div>"; },
-    uname: function () { return '<div class="row">Linux haileycheng.com 6.1.1-arch1-1 x86_64 GNU/Linux</div>'; },
+    uname: function () { return '<div class="row">Darwin haileycheng 25.0.0 Darwin Kernel Version 25.0.0 arm64</div>'; },
 
     uptime: function () {
       var mins = Math.max(1, Math.round((Date.now() - booted) / 60000));
