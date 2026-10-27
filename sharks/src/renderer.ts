@@ -32,13 +32,23 @@ const DOT_RGB: [number, number, number][] = [
 const DOT_BASE_ALPHA = [1, 1, 1, 1, 1];
 const WAKE = DOT_RGB.length - 1;
 
-const ACCENTS = ["#1d1d1f", "#3a3a3c", "#636366"];
+const ACCENTS = ["#e0892c", "#e03a32", "#b44ae0", "#33c8cc", "#3cb54a", "#3150e8", "#d9c14a"];
 
-/** Map a dark-theme brightness (0..255) to a pale gray tile, fading to white with depth. */
-function tile(level: number, dim: number) {
+/** Map a dark-theme brightness (0..255) to a pale tile in the species tint, fading to white with depth. */
+const TINT_BOOST = 3;
+/** One pastel hue per individual shark: blue, coral, mint, lavender, amber. */
+const SHARK_TINTS: [number, number, number][] = [
+  [0.9, 0.97, 1.08],
+  [1.08, 0.92, 0.88],
+  [0.9, 1.06, 0.95],
+  [1.0, 0.92, 1.08],
+  [1.08, 1.0, 0.86],
+];
+function tile(level: number, dim: number, tint: [number, number, number]) {
   const base = 150 + level * 0.4;
-  const v = Math.round(255 - (255 - base) * dim);
-  return `rgb(${v},${v},${Math.min(255, v + 3)})`;
+  const v = 255 - (255 - base) * dim;
+  const ch = (t: number) => Math.round(clamp(v * (1 + (t - 1) * TINT_BOOST), 0, 255));
+  return `rgb(${ch(tint[0])},${ch(tint[1])},${ch(tint[2])})`;
 }
 
 // Sparse glyphs on bright skin, dense glyphs in shadow, so the texture
@@ -672,7 +682,6 @@ export class AsciiRenderer {
       const swim = clamp(sh.speed / 60, 0.4, 1.4);
       this.shape = SHAPES[sh.kind];
       this.sharkId = sh.id;
-      const kindIndex = KINDS.indexOf(sh.kind);
 
       // Travelling body wave, growing toward the tail.
       for (let k = 0; k < N; k++) {
@@ -748,7 +757,7 @@ export class AsciiRenderer {
           const key = (hash3(Math.round(s * 52), Math.round(v / (cw * 0.9)), sh.id) * 4294967295) >>> 0;
           sharkKey[i] = key;
           sharkDepth[i] = sh.depth;
-          sharkKind[i] = kindIndex;
+          sharkKind[i] = sh.id % SHARK_TINTS.length;
 
           if (centerHit && coverage >= 0.6) {
             sharkFlag[i] = flag;
@@ -779,7 +788,7 @@ export class AsciiRenderer {
       const key = sharkKey[i];
       const shade = sharkShade[i];
       const dim = 0.7 + 0.3 * sharkDepth[i];
-      const [tr, tg, tb] = SHAPES[KINDS[sharkKind[i]]].tint;
+      const [tr, tg, tb] = SHARK_TINTS[sharkKind[i]];
 
       // Colours re-roll on a staggered clock so the hide shimmers.
       const tick = Math.floor(t * 2.4 + (key % 997) / 97);
@@ -789,7 +798,7 @@ export class AsciiRenderer {
         // Soft, anti-aliased silhouette: no block, just a light glyph.
         const set = shade >= 0.5 ? EDGE_HEAVY : EDGE_LIGHT;
         const g = Math.round(255 - (95 + shade * 70) * dim);
-        ctx.fillStyle = roll < 0.07 ? ACCENTS[key % ACCENTS.length] : `rgb(${g},${g},${g + 2})`;
+        ctx.fillStyle = roll < 0.22 ? ACCENTS[key % ACCENTS.length] : `rgb(${g},${g},${g + 2})`;
         ctx.fillText(set[(key >>> 8) % set.length], x + cw / 2, y + ch / 2 + 1);
         continue;
       }
@@ -813,14 +822,14 @@ export class AsciiRenderer {
         const jitter = ((key >>> 4) % 3) - 1;
         glyph = SKIN_RAMP[clamp(Math.floor((1 - shade) * 8.99) + jitter, 0, SKIN_RAMP.length - 1)];
       }
-      ctx.fillStyle = tile(level, dim);
+      ctx.fillStyle = tile(level, dim, [tr, tg, tb]);
       ctx.fillRect(x + 1, y + 1, cw - 1, ch - 1);
 
       let color: string;
       if (flag === FLAG_EYE) color = "#1d1d1f";
       else if (flag === FLAG_MARK) color = "#48484a";
-      else if (roll < 0.09) color = ACCENTS[key % ACCENTS.length];
-      else if (roll < 0.13) color = "#ffffff";
+      else if (roll < 0.3) color = ACCENTS[key % ACCENTS.length];
+      else if (roll < 0.34) color = "#ffffff";
       else color = shade > 0.55 ? "#636366" : "#48484a";
       ctx.fillStyle = color;
       ctx.fillText(glyph, x + cw / 2, y + ch / 2 + 1);
