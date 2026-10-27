@@ -124,9 +124,25 @@ export class OceanEngine {
     p.active = inside && e.pointerType !== "touch";
   };
 
+  /** Drop food at (x, y) in canvas pixels; fish nearby swim over to eat. */
+  feed(x: number, y: number) {
+    this.world.feed(x, y);
+    if (this.reducedMotion.matches) this.drawStill();
+  }
+
+  /** Feed at a few random spots across the water. */
+  feedAround(spots = 3) {
+    const { width, height } = this.canvas.getBoundingClientRect();
+    for (let i = 0; i < spots; i++) {
+      this.world.feed(width * (0.1 + Math.random() * 0.8), height * (0.15 + Math.random() * 0.7));
+    }
+  }
+
+  // Only clicks on open water feed; clicks on the page's UI stay with the UI.
   private onPointerDown = (e: PointerEvent) => {
+    if (e.target !== this.canvas) return;
     const { x, y, inside } = this.toLocal(e);
-    if (inside && !this.reducedMotion.matches) this.world.splash(x, y);
+    if (inside && !this.reducedMotion.matches) this.feed(x, y);
   };
 
   private onPointerLeave = () => {

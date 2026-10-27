@@ -10,14 +10,18 @@ import { clamp, hash3, smoothstep } from "./math";
 import { SHARK_NODES, type Shark, type SharkKind, type World } from "./world";
 
 const ALPHA_LEVELS = 6;
-const FISH_ALPHAS = [0.28, 0.42, 0.58, 0.74, 0.9];
-// One Apple system colour per species (sardine, anchovy, silverside, mackerel, goby).
+/** Pale, low-saturation water. */
+export const POND = "#f1f4f3";
+const FOOD_COLOR = "#a8875f";
+const FISH_ALPHAS = [0.55, 0.66, 0.77, 0.88, 1];
+// One muted colour per species (sardine, anchovy, silverside, mackerel, goby).
+// Low-saturation: dusty blue, clay, rose, sage, heather.
 const FISH_RGB: [number, number, number][] = [
-  [0, 122, 255],
-  [255, 149, 0],
-  [255, 45, 85],
-  [48, 176, 199],
-  [175, 82, 222],
+  [104, 132, 160],
+  [176, 128, 96],
+  [170, 112, 124],
+  [104, 146, 132],
+  [136, 120, 164],
 ];
 
 // Dot colour classes: blue, green, red, pale; the last entry is the cyan wake.
@@ -27,15 +31,15 @@ const DOT_RGB: [number, number, number][] = [
   [99, 99, 102],
   [99, 99, 102],
   [174, 174, 178],
-  [142, 142, 147],
+  [124, 150, 154],
 ];
 const DOT_BASE_ALPHA = [1, 1, 1, 1, 1];
 const WAKE = DOT_RGB.length - 1;
 
-const ACCENTS = ["#e0892c", "#e03a32", "#b44ae0", "#33c8cc", "#3cb54a", "#3150e8", "#d9c14a"];
+const ACCENTS = ["#b8956e", "#b07a72", "#9a8aae", "#7fa3a4", "#8ea486", "#8290b2", "#b5a77c"];
 
 /** Map a dark-theme brightness (0..255) to a pale tile in the species tint, fading to white with depth. */
-const TINT_BOOST = 3;
+const TINT_BOOST = 1.7;
 /** One pastel hue per individual shark: blue, coral, mint, lavender, amber. */
 const SHARK_TINTS: [number, number, number][] = [
   [0.9, 0.97, 1.08],
@@ -46,7 +50,7 @@ const SHARK_TINTS: [number, number, number][] = [
 ];
 function tile(level: number, dim: number, tint: [number, number, number]) {
   const base = 150 + level * 0.4;
-  const v = 255 - (255 - base) * dim;
+  const v = 244 - (244 - base) * dim;
   const ch = (t: number) => Math.round(clamp(v * (1 + (t - 1) * TINT_BOOST), 0, 255));
   return `rgb(${ch(tint[0])},${ch(tint[1])},${ch(tint[2])})`;
 }
@@ -276,7 +280,7 @@ function inTriangle(
 /** Visible dark-grey cell grid, snapped to device pixels. Shared with the sidebar backdrop. */
 export function paintGrid(g: CanvasRenderingContext2D, W: number, H: number, cw: number, ch: number, dpr: number) {
   g.setTransform(1, 0, 0, 1, 0, 0);
-  g.strokeStyle = "rgba(0,0,0,0.045)";
+  g.strokeStyle = "rgba(48,72,80,0.06)";
   g.lineWidth = 1;
   g.beginPath();
   for (let c = 0; c <= Math.ceil(W / cw); c++) {
@@ -421,7 +425,7 @@ export class AsciiRenderer {
     if (!g) return;
     const { width: W, height: H, dpr, cw, ch } = this;
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
-    g.fillStyle = "#ffffff";
+    g.fillStyle = POND;
     g.fillRect(0, 0, W, H);
     paintGrid(g, W, H, cw, ch, dpr);
   }
@@ -448,6 +452,7 @@ export class AsciiRenderer {
     ctx.textBaseline = "middle";
 
     this.drawHeat();
+    this.drawFood(world);
     this.drawFish();
     this.drawSharks(t);
   }
@@ -477,7 +482,9 @@ export class AsciiRenderer {
 
   private consumeEvents(world: World) {
     for (const e of world.events) {
-      if (e.kind === "eat") {
+      if (e.kind === "nibble") {
+        this.stamp(this.energy, e.x, e.y, 2, 0.7);
+      } else if (e.kind === "eat") {
         this.stamp(this.heat, e.x, e.y, 2, 1);
         this.stamp(this.energy, e.x, e.y, 3, 0.9);
       } else {
@@ -871,6 +878,20 @@ export class AsciiRenderer {
         ctx.fillText("-", (i % cols) * cw + cw / 2, ((i / cols) | 0) * ch + ch / 2 + 1);
       }
     }
+  }
+
+  private drawFood(world: World) {
+    const { ctx, cw } = this;
+    if (!world.food.length) return;
+    ctx.fillStyle = FOOD_COLOR;
+    const r = Math.max(1.6, cw * 0.17);
+    for (const p of world.food) {
+      ctx.globalAlpha = 0.45 + 0.55 * (p.bites / 3);
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
   }
 
   private drawHeat() {

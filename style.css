@@ -1,7 +1,7 @@
 /* A macOS terminal window on a quiet white page. Black, white and Apple's
    system grays only; hierarchy comes from weight and gray steps, not colour. */
 :root {
-  --page: #ffffff;
+  --page: #f1f4f3;                   /* matches the pond (sharks/src/renderer.ts) */
   --win: rgba(255, 255, 255, 0.42);
   --label: #1d1d1f;
   --secondary: #6e6e73;

@@ -151,6 +151,7 @@
         '<div class="row"><span class="k">interests</span>  what i think about unprompted</div>' +
         '<div class="row"><span class="k">contact</span>    how to reach me</div>' +
         '<div class="row"><span class="k">msg</span> &lt;text&gt; send a note straight to my inbox</div>' +
+        '<div class="row"><span class="k">feed</span>       drop food for the fish (or click the water)</div>' +
         '<div class="row"><span class="k">ls</span>         list what is on this machine</div>' +
         '<div class="row"><span class="k">cat</span> &lt;file&gt; read one of them</div>' +
         '<div class="row"><span class="k">screenfetch</span> redraw the banner</div>' +
@@ -217,6 +218,14 @@
       }
       askContact(body);
       return '<div class="row dim">draft: "' + esc(body) + '"</div>';
+    },
+
+    feed: function () {
+      if (!window.feedFish || !window.feedFish()) {
+        return '<div class="row err">feed: the fish are asleep (motion is reduced)</div>';
+      }
+      return '<div class="row">you sprinkle some food. the fish noticed.</div>' +
+        '<div class="sub dim">tip: click anywhere on the water to feed them there</div>';
     },
 
     theme: function () {
@@ -423,6 +432,7 @@
       if (action === "theme") run("theme");
       else if (action === "clear") run("clear");
       else if (action === "help") run("help");
+      else if (action === "feed") run("feed");
       scrollDown();
       input.focus();
     });

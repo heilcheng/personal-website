@@ -73,8 +73,19 @@ export interface Shark {
   depth: number;
 }
 
+export interface Food {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  /** Bites left before the pellet is gone. */
+  bites: number;
+  /** World time after which an uneaten pellet dissolves. */
+  until: number;
+}
+
 export interface WorldEvent {
-  kind: "eat" | "splash";
+  kind: "eat" | "splash" | "nibble";
   x: number;
   y: number;
 }
@@ -83,6 +94,10 @@ const FISH_SEPARATION_K = 420;
 const FISH_ALIGN_K = 1.4;
 const FISH_COHESION_K = 1;
 const FISH_FLEE_K = 1100;
+/** Pull toward food, and how far fish notice it. */
+const FISH_FOOD_K = 210;
+const FOOD_SENSE = 520;
+const FOOD_BITE_R = 9;
 const BLIND_COS = -0.6; // ~127° either side of the heading is visible
 
 export class World {
@@ -93,6 +108,7 @@ export class World {
   sharks: Shark[] = [];
   events: WorldEvent[] = [];
   pointer = { x: 0, y: 0, active: false };
+  food: Food[] = [];
 
   /** Fish neighbourhood radius; the spatial hash bucket size matches it. */
   private perception = 60;
@@ -225,9 +241,42 @@ export class World {
     }
   }
 
+  /** Drop a pinch of food: a few pellets that drift apart and sink slowly. */
+  feed(x: number, y: number, pellets = 7) {
+    this.events.push({ kind: "splash", x, y });
+    for (let i = 0; i < pellets; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const s = 6 + Math.random() * 16;
+      this.food.push({
+        x: x + Math.cos(a) * 4,
+        y: y + Math.sin(a) * 3,
+        vx: Math.cos(a) * s,
+        vy: Math.sin(a) * s * 0.5,
+        bites: 3,
+        until: this.time + 30,
+      });
+    }
+    if (this.food.length > 120) this.food.splice(0, this.food.length - 120);
+  }
+
+  private stepFood(dt: number) {
+    const drag = Math.exp(-dt * 1.8);
+    const H = this.height;
+    let w = 0;
+    for (const p of this.food) {
+      p.vx *= drag;
+      p.vy = p.vy * drag + 7 * (1 - drag);
+      p.x += p.vx * dt;
+      p.y = Math.min(H - 10, p.y + p.vy * dt);
+      if (p.bites > 0 && this.time < p.until) this.food[w++] = p;
+    }
+    this.food.length = w;
+  }
+
   step(dt: number) {
     this.time += dt;
     this.rebuildHash();
+    this.stepFood(dt);
     this.stepFish(dt);
     this.stepSharks(dt);
     this.respawn();
@@ -266,7 +315,7 @@ export class World {
   }
 
   private stepFish(dt: number) {
-    const { fish, sharks, pointer, width: W, height: H, time } = this;
+    const { fish, sharks, width: W, height: H, time } = this;
     const R = this.perception;
     const R2 = R * R;
     const foreignSep = this.foreignSep;
@@ -398,16 +447,32 @@ export class World {
         fear = Math.max(fear, Math.sqrt(w));
       }
 
-      if (pointer.active) {
-        const pr = 130;
-        const dx = f.x - pointer.x;
-        const dy = f.y - pointer.y;
-        const d = Math.hypot(dx, dy);
-        if (d < pr && d > 1e-3) {
-          const w = (1 - d / pr) ** 2;
-          ax += (dx / d) * FISH_FLEE_K * w;
-          ay += (dy / d) * FISH_FLEE_K * w;
-          fear = Math.max(fear, Math.sqrt(w) * 0.8);
+      // Food: swim to the nearest pellet in range and nibble it. Fear wins.
+      if (this.food.length && fear < 0.5) {
+        let best = FOOD_SENSE * FOOD_SENSE;
+        let target: Food | null = null;
+        for (const p of this.food) {
+          const dx = p.x - f.x;
+          const dy = p.y - f.y;
+          const d2 = dx * dx + dy * dy;
+          if (d2 < best) {
+            best = d2;
+            target = p;
+          }
+        }
+        if (target) {
+          const d = Math.sqrt(best);
+          if (d < FOOD_BITE_R) {
+            target.bites--;
+            if (Math.random() < 0.35) this.events.push({ kind: "nibble", x: target.x, y: target.y });
+            // Turn away after a bite so the school jostles around the pellet.
+            f.vx += (Math.random() - 0.5) * 60;
+            f.vy += (Math.random() - 0.5) * 40;
+          } else if (d > 1e-3) {
+            const pull = FISH_FOOD_K * (0.35 + 0.65 * (1 - d / FOOD_SENSE)) * (1 - fear);
+            ax += ((target.x - f.x) / d) * pull;
+            ay += ((target.y - f.y) / d) * pull;
+          }
         }
       }
 
