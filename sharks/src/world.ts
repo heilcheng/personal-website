@@ -49,6 +49,8 @@ export interface Fish {
   depth: number;
   /** Rotation sense shared by a school when it mills into a bait ball. */
   millDir: 1 | -1;
+  /** World time before which this fish will not take another bite. */
+  nextBite?: number;
 }
 
 export interface Shark {
@@ -95,9 +97,13 @@ const FISH_ALIGN_K = 1.4;
 const FISH_COHESION_K = 1;
 const FISH_FLEE_K = 1100;
 /** Pull toward food, and how far fish notice it. */
-const FISH_FOOD_K = 210;
-const FOOD_SENSE = 520;
-const FOOD_BITE_R = 9;
+const FISH_FOOD_K = 760;
+const FOOD_SENSE = 760;
+const FOOD_BITE_R = 10;
+/** Within this distance fish brake and mill around the pellet instead of overshooting. */
+const FOOD_ARRIVE_R = 70;
+const FOOD_BITES = 14;
+const BITE_COOLDOWN = 0.7;
 const BLIND_COS = -0.6; // ~127° either side of the heading is visible
 
 export class World {
@@ -252,8 +258,8 @@ export class World {
         y: y + Math.sin(a) * 3,
         vx: Math.cos(a) * s,
         vy: Math.sin(a) * s * 0.5,
-        bites: 3,
-        until: this.time + 30,
+        bites: FOOD_BITES,
+        until: this.time + 40,
       });
     }
     if (this.food.length > 120) this.food.splice(0, this.food.length - 120);
@@ -462,16 +468,23 @@ export class World {
         }
         if (target) {
           const d = Math.sqrt(best);
-          if (d < FOOD_BITE_R) {
+          if (d < FOOD_BITE_R && (f.nextBite ?? 0) <= time) {
             target.bites--;
+            f.nextBite = time + BITE_COOLDOWN * (0.7 + Math.random() * 0.6);
             if (Math.random() < 0.35) this.events.push({ kind: "nibble", x: target.x, y: target.y });
             // Turn away after a bite so the school jostles around the pellet.
             f.vx += (Math.random() - 0.5) * 60;
             f.vy += (Math.random() - 0.5) * 40;
           } else if (d > 1e-3) {
-            const pull = FISH_FOOD_K * (0.35 + 0.65 * (1 - d / FOOD_SENSE)) * (1 - fear);
+            const pull = FISH_FOOD_K * (0.45 + 0.55 * (1 - d / FOOD_SENSE)) * (1 - fear);
             ax += ((target.x - f.x) / d) * pull;
             ay += ((target.y - f.y) / d) * pull;
+            if (d < FOOD_ARRIVE_R) {
+              // Arrive: shed speed so the crowd hovers at the food.
+              const brake = 3.2 * (1 - d / FOOD_ARRIVE_R);
+              ax -= f.vx * brake;
+              ay -= f.vy * brake;
+            }
           }
         }
       }

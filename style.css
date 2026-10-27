@@ -38,8 +38,10 @@ body {
   min-height: 100dvh;
   padding: 4rem 2.5rem;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 0.9rem;
   background: var(--page);
   color: var(--label);
   font-family: ui-monospace, "SF Mono", SFMono-Regular, "Geist Mono", Menlo, Consolas,
@@ -63,6 +65,18 @@ body {
 
 ::selection { background: var(--sel); }
 
+/* One-line nudge above the window; clicks fall through to the water. */
+#hint {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  font-size: 13px;
+  letter-spacing: -0.005em;
+  color: #6e6e73;
+  pointer-events: none;
+  text-align: center;
+}
+
 .sans {
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
     "Geist", "Inter", "Helvetica Neue", Arial, sans-serif;
@@ -74,8 +88,8 @@ body {
   position: relative;
   z-index: 1;
   /* A fixed 16:10 Mac window that shrinks to fit both viewport width and height. */
-  width: min(820px, 100%, calc((100vh - 8rem) * 1.6));
-  width: min(820px, 100%, calc((100dvh - 8rem) * 1.6));
+  width: min(820px, 100%, calc((100vh - 10rem) * 1.6));
+  width: min(820px, 100%, calc((100dvh - 10rem) * 1.6));
   aspect-ratio: 16 / 10;
   display: flex;
   flex-direction: column;
@@ -418,17 +432,18 @@ a:focus-visible {
 @media (max-width: 900px) {
   body { padding: 1.5rem; }
   #window {
-    width: min(720px, 100%, calc((100vh - 3rem) * 1.6));
-    width: min(720px, 100%, calc((100dvh - 3rem) * 1.6));
+    width: min(720px, 100%, calc((100vh - 5rem) * 1.6));
+    width: min(720px, 100%, calc((100dvh - 5rem) * 1.6));
   }
 }
 
 @media (max-width: 600px) {
-  body { padding: 1rem; font-size: 12.5px; }
+  body { padding: 1rem; font-size: 12.5px; gap: 0.6rem; }
+  #hint { font-size: 12px; }
   /* Portrait on phones: a tall 9:16 card that still floats on the page. */
   #window {
-    width: min(100%, calc((100vh - 2rem) * 0.5625));
-    width: min(100%, calc((100dvh - 2rem) * 0.5625));
+    width: min(100%, calc((100vh - 4rem) * 0.5625));
+    width: min(100%, calc((100dvh - 4rem) * 0.5625));
     aspect-ratio: 9 / 16;
     border-radius: 14px;
   }

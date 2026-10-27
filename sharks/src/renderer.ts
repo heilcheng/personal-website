@@ -14,14 +14,14 @@ const ALPHA_LEVELS = 6;
 export const POND = "#f1f4f3";
 const FOOD_COLOR = "#a8875f";
 const FISH_ALPHAS = [0.55, 0.66, 0.77, 0.88, 1];
-// One muted colour per species (sardine, anchovy, silverside, mackerel, goby).
-// Low-saturation: dusty blue, clay, rose, sage, heather.
+// One gray or gray-blue per species (sardine, anchovy, silverside, mackerel, goby).
+// Grays and gray-blues only: graphite, ash, slate, steel, mist blue.
 const FISH_RGB: [number, number, number][] = [
-  [104, 132, 160],
-  [176, 128, 96],
-  [170, 112, 124],
-  [104, 146, 132],
-  [136, 120, 164],
+  [88, 92, 98],
+  [138, 142, 148],
+  [86, 108, 132],
+  [70, 92, 116],
+  [118, 140, 164],
 ];
 
 // Dot colour classes: blue, green, red, pale; the last entry is the cyan wake.
@@ -886,7 +886,7 @@ export class AsciiRenderer {
     ctx.fillStyle = FOOD_COLOR;
     const r = Math.max(1.6, cw * 0.17);
     for (const p of world.food) {
-      ctx.globalAlpha = 0.45 + 0.55 * (p.bites / 3);
+      ctx.globalAlpha = 0.45 + 0.55 * (p.bites / 14);
       ctx.beginPath();
       ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
       ctx.fill();
