@@ -115,6 +115,8 @@ export class World {
   events: WorldEvent[] = [];
   pointer = { x: 0, y: 0, active: false };
   food: Food[] = [];
+  /** Latest drop point: while active, every shark converges on it and stops hunting. */
+  feedSpot: { x: number; y: number; until: number } | null = null;
 
   /** Fish neighbourhood radius; the spatial hash bucket size matches it. */
   private perception = 60;
@@ -250,6 +252,7 @@ export class World {
   /** Drop a pinch of food: a few pellets that drift apart and sink slowly. */
   feed(x: number, y: number, pellets = 7) {
     this.events.push({ kind: "splash", x, y });
+    this.feedSpot = { x, y, until: this.time + 18 };
     for (let i = 0; i < pellets; i++) {
       const a = Math.random() * Math.PI * 2;
       const s = 6 + Math.random() * 16;
@@ -322,6 +325,8 @@ export class World {
 
   private stepFish(dt: number) {
     const { fish, sharks, width: W, height: H, time } = this;
+    // Feeding frenzy: calm sharks are tolerated, so fish still crowd the food.
+    const sharkFear = this.feedSpot && time < this.feedSpot.until ? 0.3 : 1;
     const R = this.perception;
     const R2 = R * R;
     const foreignSep = this.foreignSep;
@@ -441,7 +446,7 @@ export class World {
         const d = Math.sqrt(best);
         if (d >= fearR || d < 1e-3) continue;
         let w = 1 - d / fearR;
-        w *= w;
+        w *= w * sharkFear;
         const awayX = (f.x - bx) / d;
         const awayY = (f.y - by) / d;
         // Fountain effect: break to whichever side of the shark's path you're on.
@@ -557,15 +562,28 @@ export class World {
       dx += Math.cos(sh.heading + sh.wander) * 0.45;
       dy += Math.sin(sh.heading + sh.wander) * 0.45;
 
+      // Feeding time: every shark heads for the latest drop and circles it.
+      const spot = this.feedSpot && time < this.feedSpot.until ? this.feedSpot : null;
+
       // Hunt.
-      if (time >= sh.retargetAt) {
+      if (spot) {
+        sh.target = null;
+      } else if (time >= sh.retargetAt) {
         sh.target = this.findPrey(sh);
         sh.retargetAt = time + 0.45;
       }
       const t = sh.target;
       let hunting = false;
       let closing = 0;
-      if (t && t.alive && sh.hunger > 0.3) {
+      let toSpot = Infinity;
+      if (spot) {
+        const sx = spot.x - hx;
+        const sy = spot.y - hy;
+        toSpot = Math.hypot(sx, sy) || 1;
+        const w = 4.5 * clamp(toSpot / (L * 0.5), 0.35, 1);
+        dx += (sx / toSpot) * w;
+        dy += (sy / toSpot) * w;
+      } else if (t && t.alive && sh.hunger > 0.3) {
         // Pursuit: aim at where the fish is about to be.
         const tx = t.x + t.vx * 0.35 - hx;
         const ty = t.y + t.vy * 0.35 - hy;
@@ -606,7 +624,7 @@ export class World {
       const ex = (hx - cxW) / (W * 0.3);
       const ey = (hy - cyW) / (H * 0.16);
       const e2 = ex * ex + ey * ey;
-      if (e2 < 1) {
+      if (e2 < 1 && !spot) {
         const e = Math.sqrt(e2) || 1e-3;
         const w = (1 - e) * (hunting ? 1 : 2.5);
         dx += (ex / e) * w;
@@ -627,14 +645,18 @@ export class World {
 
       const desired = Math.atan2(dy, dx);
       // Sharks can't pivot on the spot: the turning circle grows with speed.
-      const agility = Math.min(hunting ? 1.7 + closing : 0.8, sh.speed / (L * 0.22));
+      const agility = Math.min(hunting ? 1.7 + closing : spot ? 1.4 : 0.8, sh.speed / (L * 0.22));
       const maxTurn = agility * dt;
       const turned = clamp(angleDiff(sh.heading, desired), -maxTurn, maxTurn);
       sh.heading += turned;
       sh.turn += (turned / dt - sh.turn) * Math.min(1, dt * 3);
 
       const cruise = 30 + L * 0.04;
-      const targetSpeed = hunting ? cruise * (1.45 + closing * 1.5) : cruise;
+      const targetSpeed = hunting
+        ? cruise * (1.45 + closing * 1.5)
+        : spot
+          ? cruise * (toSpot > L * 0.6 ? 3.4 : 1)
+          : cruise;
       sh.speed += (targetSpeed - sh.speed) * Math.min(1, dt * 1.1);
       sh.phase += dt * (2 + sh.speed / 24);
 
@@ -656,8 +678,8 @@ export class World {
         prevAngle = angle;
       }
 
-      // Feed.
-      if (sh.hunger > 0.15) {
+      // Feed (but not on the fish during feeding time).
+      if (sh.hunger > 0.15 && !spot) {
         const mouthR = L * 0.05 + 8;
         const mx = nodes[0];
         const my = nodes[1];

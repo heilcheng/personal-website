@@ -36,17 +36,17 @@ const DOT_RGB: [number, number, number][] = [
 const DOT_BASE_ALPHA = [1, 1, 1, 1, 1];
 const WAKE = DOT_RGB.length - 1;
 
-const ACCENTS = ["#b8956e", "#b07a72", "#9a8aae", "#7fa3a4", "#8ea486", "#8290b2", "#b5a77c"];
+const ACCENTS = ["#8e8e93", "#6e7f91", "#9aa7b4", "#5f6f80", "#b0b6bd", "#7d8a99", "#636366"];
 
 /** Map a dark-theme brightness (0..255) to a pale tile in the species tint, fading to white with depth. */
 const TINT_BOOST = 1.7;
-/** One pastel hue per individual shark: blue, coral, mint, lavender, amber. */
+/** One tone per individual shark: light gray, dark gray, gray-blue, slate blue, pale blue-gray. */
 const SHARK_TINTS: [number, number, number][] = [
-  [0.9, 0.97, 1.08],
-  [1.08, 0.92, 0.88],
-  [0.9, 1.06, 0.95],
-  [1.0, 0.92, 1.08],
-  [1.08, 1.0, 0.86],
+  [1.0, 1.0, 1.0],
+  [0.9, 0.9, 0.92],
+  [0.9, 0.95, 1.04],
+  [0.84, 0.9, 1.0],
+  [0.96, 0.99, 1.05],
 ];
 function tile(level: number, dim: number, tint: [number, number, number]) {
   const base = 150 + level * 0.4;
