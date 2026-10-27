@@ -33,6 +33,8 @@ export class OceanEngine {
       this.schedule();
     });
     this.intersectionObserver.observe(canvas);
+    // Stop the simulation while the tab is in the background (saves phone battery).
+    document.addEventListener("visibilitychange", this.onVisibility);
 
     this.reducedMotion.addEventListener("change", this.onMotionPreference);
     window.addEventListener("pointermove", this.onPointerMove, { passive: true });
@@ -54,6 +56,7 @@ export class OceanEngine {
     this.resizeObserver.disconnect();
     this.intersectionObserver.disconnect();
     this.reducedMotion.removeEventListener("change", this.onMotionPreference);
+    document.removeEventListener("visibilitychange", this.onVisibility);
     window.removeEventListener("pointermove", this.onPointerMove);
     window.removeEventListener("pointerdown", this.onPointerDown);
     document.documentElement.removeEventListener("pointerleave", this.onPointerLeave);
@@ -69,9 +72,11 @@ export class OceanEngine {
     if (this.reducedMotion.matches) this.drawStill();
   }
 
+  private onVisibility = () => this.schedule();
+
   private schedule() {
     cancelAnimationFrame(this.raf);
-    if (this.disposed || !this.visible || this.reducedMotion.matches) return;
+    if (this.disposed || !this.visible || document.hidden || this.reducedMotion.matches) return;
     this.last = performance.now();
     this.raf = requestAnimationFrame(this.frame);
   }

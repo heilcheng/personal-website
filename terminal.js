@@ -409,6 +409,9 @@
   });
 
   // Header-bar menu (GNOME-style popover).
+  // A hover-capable fine pointer stands in for "has a physical keyboard".
+  var hasKeyboard = !!(window.matchMedia && window.matchMedia("(hover: hover) and (pointer: fine)").matches);
+
   var menuBtn = document.getElementById("menu-btn");
   var menu = document.getElementById("menu");
   function closeMenu() {
@@ -434,7 +437,7 @@
       else if (action === "help") run("help");
       else if (action === "feed") run("feed");
       scrollDown();
-      input.focus();
+      if (hasKeyboard) input.focus();
     });
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape") closeMenu();
@@ -478,11 +481,33 @@
     setTimeout(renderInput, 0);
   });
 
+  // Quick-command chips run a command without summoning the keyboard; "msg"
+  // just fills the prompt, since it needs words after it.
+  var chips = document.getElementById("chips");
+  if (chips) {
+    chips.addEventListener("click", function (e) {
+      var btn = e.target.closest("button[data-cmd]");
+      if (!btn) return;
+      e.stopPropagation();
+      closeMenu();
+      var cmd = btn.getAttribute("data-cmd");
+      if (cmd === "msg") {
+        input.value = "msg ";
+        input.focus();
+        renderInput();
+      } else {
+        run(cmd);
+      }
+      scrollDown();
+    });
+  }
+
   // Clicking anywhere in the terminal focuses the prompt, unless the user is
-  // selecting text or following a link.
+  // selecting text or following a link. Taps on the water are for the fish.
   document.addEventListener("click", function (e) {
     closeMenu();
-    if (e.target && e.target.closest && e.target.closest("a, button, #headerbar")) return;
+    if (!e.target || !e.target.closest || !e.target.closest("#term")) return;
+    if (e.target.closest("a, button")) return;
     if (String(window.getSelection())) return;
     input.focus();
   });
@@ -520,6 +545,11 @@
       .catch(function () { /* keep whatever number is already on the page */ });
   }
 
+  var hintEl = document.getElementById("hint");
+  if (hintEl && window.matchMedia && window.matchMedia("(hover: none)").matches) {
+    hintEl.textContent = "Tap anywhere in the water to feed the fish.";
+  }
+
   // Boot.
   writeCommand("screenfetch");
   write(section("screenfetch"));
@@ -538,7 +568,7 @@
 
   // Autofocus only where a keyboard is already present -- on touch devices this
   // would throw up the on-screen keyboard before the visitor has read anything.
-  if (window.matchMedia && window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+  if (hasKeyboard) {
     input.focus();
   }
 })();

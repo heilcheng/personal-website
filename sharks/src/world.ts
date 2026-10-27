@@ -201,7 +201,7 @@ export class World {
     // Smaller (farther) sharks draw first so the big one swims over them.
     this.sharks.sort((a, b) => a.length - b.length);
 
-    const total = this.fishCount ?? clamp(Math.round((W * H) / 4400), 85, 340);
+    const total = this.fishCount ?? clamp(Math.round((W * H) / 4400), 60, 340);
     this.fish = [];
     while (this.fish.length < total) {
       const species = pickSpecies();
