@@ -514,8 +514,7 @@
   writeCommand("screenfetch");
   write(section("screenfetch"));
   write(
-    '<div class="row hint">this is a real terminal. it answers to things.</div>' +
-      '<div class="sub">start with <span class="b">help</span>, or go straight for ' +
+    '<div class="row hint">start with <span class="b">help</span>, or go straight for ' +
       "<span class=\"b\">who</span>, <span class=\"b\">stuff</span>, " +
       '<span class="b">ls</span>.</div>' +
       '<div class="sub">want to say something back? <span class="b">msg</span> ' +

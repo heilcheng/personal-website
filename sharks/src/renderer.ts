@@ -11,6 +11,14 @@ import { SHARK_NODES, type Shark, type SharkKind, type World } from "./world";
 
 const ALPHA_LEVELS = 6;
 const FISH_ALPHAS = [0.28, 0.42, 0.58, 0.74, 0.9];
+// One Apple system colour per species (sardine, anchovy, silverside, mackerel, goby).
+const FISH_RGB: [number, number, number][] = [
+  [0, 122, 255],
+  [255, 149, 0],
+  [255, 45, 85],
+  [48, 176, 199],
+  [175, 82, 222],
+];
 
 // Dot colour classes: blue, green, red, pale; the last entry is the cyan wake.
 // Light monochrome palette for haileycheng.com: every class is a gray.
@@ -321,9 +329,9 @@ export class AsciiRenderer {
   /** Cells holding a fish this frame (frame stamp); dots skip them. */
   private fishStamp = new Uint32Array(0);
   private frameId = 0;
-  /** Fish cells bucketed by brightness, so each bucket is one fillStyle. */
-  private fishBuckets: number[][] = FISH_ALPHAS.map(() => []);
-  private fishStyles = FISH_ALPHAS.map((a) => `rgba(72,72,74,${a})`);
+  /** Fish cells bucketed by species x brightness, so each bucket is one fillStyle. */
+  private fishBuckets: number[][] = FISH_RGB.flatMap(() => FISH_ALPHAS.map(() => [] as number[]));
+  private fishStyles = FISH_RGB.flatMap(([r, g, b]) => FISH_ALPHAS.map((a) => `rgba(${r},${g},${b},${a})`));
 
   constructor(private canvas: HTMLCanvasElement) {
     const ctx = canvas.getContext("2d", { alpha: false });
@@ -838,7 +846,8 @@ export class AsciiRenderer {
         fishStamp[i] = frame;
         const glint = clamp(Math.abs(f.turn) / 3.5, 0, 1);
         const v = 0.3 + (0.4 * (f.depth - 0.55)) / 0.45 + 0.3 * Math.max(glint, f.alarm);
-        fishBuckets[clamp(Math.floor(v * FISH_ALPHAS.length), 0, FISH_ALPHAS.length - 1)].push(i);
+        const level = clamp(Math.floor(v * FISH_ALPHAS.length), 0, FISH_ALPHAS.length - 1);
+        fishBuckets[(f.species % FISH_RGB.length) * FISH_ALPHAS.length + level].push(i);
       }
     }
   }
